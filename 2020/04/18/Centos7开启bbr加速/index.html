@@ -1,0 +1,40 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>Centos7开启bbr加速</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>Centos7开启bbr加速</h2><p>此文完全是搬运而来，因为原文写的太棒了，根本不需要任何整理修改，如果喜欢，也可以直接访问<a href="https://ofcss.com/2016/12/12/bbr-congestion-control-algorithm-for-centos-7.html" target="_blank" rel="noopener">原文</a></p>
+<h2><span id="1bbr算法由来">1.bbr算法由来</span></h2><blockquote>
+<p>Google 在 2016年9月份开源了他们的优化网络拥堵算法BBR，最新版本的 Linux内核（4.9-rc8）中已经集成了该算法。    </p>
+<p>对于TCP单边加速，并非所有人都很熟悉，不过有另外一个大名鼎鼎的商业软件“锐速”，相信很多人都清楚。特别是对于使用国外服务器或者VPS的人来说，效果更佳。    </p>
+<p>网上有很多在 Debian 和 Ubuntu 系统下启用 BBR 的教程，我就不粘贴了，我自己一直用的是 CentOS，本文介绍一下在 64位 CentOS 7 系统下开启BBR的方法。    </p>
+</blockquote>
+<a id="more"></a>
+<h2><span id="2升级内核">2.升级内核</span></h2><p>第一步首先是升级内核到支持BBR的版本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org	<span class="comment">#导入公钥</span></span><br></pre></td></tr></table></figure>
+
+<p>CentOS 7</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm	<span class="comment">#安装elrepo源</span></span><br></pre></td></tr></table></figure>
+
+<p>CentOS 6</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rpm -Uvh http://www.elrepo.org/elrepo-release-6-6.el6.elrepo.noarch.rpm	<span class="comment">#安装elrepo源</span></span><br></pre></td></tr></table></figure>
+
+<p>CentOS 6 &amp; 7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum --enablerepo=elrepo-kernel install kernel-ml -y	#安装4.9.0以上的内核</span><br></pre></td></tr></table></figure>
+
+<h2><span id="3确认是否成功安装新版内核">3.确认是否成功安装新版内核</span></h2><p><code>rpm -qa | grep kernel</code><br>如果安装成功，你应该会看到 kernel-ml-4.<em>.</em>-*.el7.elrepo.x86_64 这样的条目：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kernel-tools-3.10.0-514.el7.x86_64</span><br><span class="line">kernel-ml-4.12.4-1.el7.elrepo.x86_64</span><br><span class="line">kernel-tools-libs-3.10.0-514.el7.x86_64</span><br><span class="line">kernel-3.10.0-514.el7.x86_64</span><br></pre></td></tr></table></figure>
+
+<p>调整GRUB启动顺序</p>
+<p>在安装好新版本内核以后，要先用新安装的内核引导系统看看能否正常启动，下面是直接调整 GRUB2 启动顺序的命令：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ egrep ^menuentry /etc/grub2.cfg | cut -f 2 -d \<span class="string">'	#查看可用的启动项</span></span><br></pre></td></tr></table></figure>
+
+<p>执行完这条命令以后，能看到多个可以引导的系统，比如我的是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CentOS Linux (4.12.4-1.el7.elrepo.x86_64) 7 (Core)</span><br><span class="line">CentOS Linux (3.10.0-514.el7.x86_64) 7 (Core)</span><br><span class="line">CentOS Linux (0-rescue-d4d0adfea8e944e5b8019ed1aa3c9e16) 7 (Core)</span><br></pre></td></tr></table></figure>
+
+<p>不管有多少个，从上往下，记住要引导的项的序号（从0开始计数）即可，比如上面的例子，我要使用第一项 CentOS Linux (4.12.4-1.el7.elrepo.x86_64) 7 (Core) 来引导，序号是 0。</p>
+<h2><span id="4设置默认引导项">4.设置默认引导项</span></h2><p><code>grub2-set-default 0</code></p>
+<h2><span id="5重启系统">5.重启系统</span></h2><p><code>reboot</code></p>
+<p>修改sysctl 开启 BBR</p>
+<p>重启系统之后，通过 uname -r 或者其它命令可以看到我们的内核已经是新版内核了，接下来开启 BBR</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo &quot;net.core.default_qdisc=fq&quot; &gt;&gt; /etc/sysctl.conf</span><br><span class="line">echo &quot;net.ipv4.tcp_congestion_control=bbr&quot; &gt;&gt; /etc/sysctl.conf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载 /etc/sysctl.conf 文件中的参数并显示，主要看看有没有报错的设置（显示的结果与你的配置文件内容有关）</span></span><br><span class="line">sysctl -p</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 bbr 是否开启，如果成功，应该会看到 net.ipv4.tcp_congestion_control = bbr</span></span><br><span class="line">sysctl net.ipv4.tcp_available_congestion_control</span><br><span class="line"></span><br><span class="line"><span class="comment"># 依然是验证，如果成功，应该会看到类似 tcp_bbr    16384    3 这样的文字</span></span><br><span class="line">lsmod | grep bbr</span><br></pre></td></tr></table></figure>
+
+<p>以上每一步最好都根据注释中的说明仔细检查一下是否顺利，然后再进行下一步，如果都成功的话，到这里已经成功开启BBR算法。可以在你的服务器上放一个大文件，然后用浏览器下载一下看看速度是否有提升。</p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

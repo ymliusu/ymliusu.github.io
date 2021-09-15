@@ -1,0 +1,14 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>Maven的安装与使用</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>Maven的安装与使用</h2><p>maven作为项目管理工具已经是必不可少的技能。</p>
+<h2><span id="1解压">1.解压</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tar -zxvf apache-maven-3.3.9-bin.tar.gz</span><br></pre></td></tr></table></figure>
+
+<h2><span id="2环境变量设置">2.环境变量设置</span></h2><p><code>vi /etc/profile</code>编辑文件增加以下内容</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MAVEN_HOME=/usr/<span class="built_in">local</span>/maven3</span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;PATH&#125;</span>:<span class="variable">$&#123;MAVEN_HOME&#125;</span>/bin</span><br></pre></td></tr></table></figure>
+
+<p><code>source /etc/profile</code>使配置生效</p>
+<p>Maven中央仓库：<a href="http://search.maven.org/" target="_blank" rel="noopener">http://search.maven.org/</a><br>Maven仓库: <a href="http://mvnrepository.com/" target="_blank" rel="noopener">http://mvnrepository.com/</a></p>
+<p>maven常用命令:<a href="http://www.cnblogs.com/phoebus0501/archive/2011/05/10/2042511.html" target="_blank" rel="noopener">参考</a></p>
+<p><code>mvn clean install -Pdev -Dmaven.test.skip=true</code></p>
+<p>上传本地jar到仓库</p>
+<p><code>mvn install:install-file -Dfile=E:\\doc\\dubbo-2.8.4.jar -DgroupId=com.alibaba -DartifactId=dubbo -Dversion=2.8.4 -Dpackaging=jar -DgeneratePom=true</code></p>
+<p>settings.xml文件详解: <a href="http://blog.csdn.net/yiluoak_47/article/details/12068855" target="_blank" rel="noopener">地址</a></p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>linux机器之间ssh免密登录</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>linux机器之间ssh免密登录</h2><p>这里我们假设有三台机器A，B和C。情况如下所示</p>
+<table>
+<thead>
+<tr>
+<th>机器</th>
+<th>ip地址</th>
+<th>ssh端口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>192.168.A.AA</td>
+<td>22</td>
+</tr>
+<tr>
+<td>B</td>
+<td>192.168.B.BB</td>
+<td>22</td>
+</tr>
+<tr>
+<td>C</td>
+<td>192.168.C.CC</td>
+<td>66</td>
+</tr>
+</tbody></table>
+<p>这里分别讨论两种情况：</p>
+<p>1.如何实现在A机器上免密登录B机器(ssh和scp都不需要输入密码)<br>2.如何实现在A机器上免密登录C机器(ssh和scp都不需要输入密码)    </p>
+<p>备注:B和C的不同之处就是B是默认22端口，C则是修改以后的端口为66。</p>
+<h2><span id="1实现从a到b免密登录">1.实现从A到B免密登录</span></h2><p>登录A服务器，执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ~</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ssh-keygen -t rsa</span></span><br></pre></td></tr></table></figure>
+
+<p>以上生成了密钥对，接下来执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ssh-copy-id 192.168.BB.BBB</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就把A中的公钥信息拷贝到了B机器，完整的命令格式应该是这样的(<strong>不过上面的简化命令也是同样的效果</strong>)。<code>$ ssh-copy-id -i /root/.ssh/id_rsa.pub root@192.168.B.BB</code></p>
+<p>如此一来，<strong>在A机器上</strong>执行下面的命令则不需要输入密码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ssh root@192.168.B.BB	<span class="comment">#登录到B服务器</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> scp -r /root/文件夹/ root@192.168.B.BB:/root/	<span class="comment">#拷贝A机器上/root/文件夹,整个到B机器的/root目录</span></span></span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<h2><span id="2实现从a到c免密登录">2.实现从A到C免密登录</span></h2><p>登录A服务器，执行(如果已经生成过密钥对则这步可以省略)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd ~</span><br><span class="line">$ ssh-keygen -t rsa</span><br></pre></td></tr></table></figure>
+
+<p>以上生成了密钥对，接下来执行类似与上面的ssh-copy-id命令，只不过需要额外写上C服务器的66端口，但是这里我没有成功根据网上教程，<strong>因此不选择这样操作</strong>，但是还是贴一下命令，如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh-copy-id -i /root/.ssh/id_rsa.pub &quot;-p 66 root@192.168.C.CC&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>这里用另一种方法实现</strong>，其实本质的思想是把A服务上的公钥信息拷贝到C服务器上让其知晓，因此可以按照如下方式操作</p>
+<p>先把A服务器上的公钥文件拷贝到C服务器(这里要输入C服务器的密码，因为我们还没完成免密)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scp -P 66 /root/.ssh/id_rsa.pub root@192.168.C.CC:/root/	#把公钥文件拷贝到C服务器的/root目录</span><br></pre></td></tr></table></figure>
+
+<p><strong>然后登录C服务器</strong>，执行如下命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd /root	#进入/root目录</span><br><span class="line">$ mkdir .ssh	#创建.ssh目录，如果已经存在则不需要创建</span><br><span class="line">$ cat /root/id_rsa.pub &gt;&gt; /root/.ssh/authorized_keys	#把公钥信息追加到authorized_keys文件中，这里如果authorized_keys文件不存在也没关系，执行命令会自动创建该文件</span><br></pre></td></tr></table></figure>
+
+<p>ok,回到A服务器，试着执行以下命令则不需要输入密码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ssh -p 66 root@192.168.C.CC	#登录到C服务器</span><br><span class="line">$ scp -P 66 -r /root/文件夹/ root@192.168.C.CC:/root/	#拷贝A机器上/root/文件夹,整个到C机器的/root目录</span><br></pre></td></tr></table></figure>
+
+<p><strong>这里注意ssh中的-p是小写，scp中的-P是大写</strong></p>
+<h2><span id="3补充">3.补充</span></h2><p>如果想在A服务器上免密登录B服务器，执行相关代码，而又不需要在命令行切到B服务器，则可以这样操作</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ssh root@192.168.B.BB &quot;rm -rf /var/www/&quot;	#删除远程B服务器上的/var/www/目录</span><br></pre></td></tr></table></figure>
+
+<p>这个技巧在A服务器上写shell脚本需要操作远程其他服务的时候比较有用。</p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

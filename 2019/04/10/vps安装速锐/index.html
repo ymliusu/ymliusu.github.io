@@ -1,0 +1,45 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>vps安装速锐</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>vps安装速锐</h2><p>参考网上这篇文章<a href="https://blog.deartanker.com/post/4486.html" target="_blank" rel="noopener">链接</a></p>
+<h2><span id="1更新-centos7-到最新版">1.更新 CentOS7 到最新版</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ yum install epel-release -y</span><br><span class="line">$ yum update -y</span><br></pre></td></tr></table></figure>
+
+<h2><span id="2同步时间系统时间">2.同步时间系统时间</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ yum install bind-utils net-tools wget ntp -y	#同步时间主要是ntp软件</span><br><span class="line">$ timedatectl set-timezone Asia/Shanghai	#指定东八区</span><br><span class="line">$ timedatectl set-ntp yes	#同步</span><br><span class="line">$ timedatectl	#查看</span><br><span class="line">$ date -R	#查看当前时间和时区</span><br></pre></td></tr></table></figure>
+
+<p>重启系统</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl reboot</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+<h2><span id="3安装速锐支持内核">3.安装速锐支持内核</span></h2><p>CentOS7 强制安装支持锐速的最新内核，并永久指定使用该内核启动系统。</p>
+<p><code>uname -r</code>可以查看当前系统内核。</p>
+<p>强制更新内核到：kernel-3.10.0-327.36.3.el7.x86_64</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rpm -ivh http://vault.centos.org/7.2.1511/updates/x86_64/Packages/kernel-3.10.0-327.36.3.el7.x86_64.rpm --force</span><br></pre></td></tr></table></figure>
+
+<p>永久指定使用该内核启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ grub2-set-default &quot;CentOS Linux (3.10.0-327.36.3.el7.x86_64) 7 (Core)&quot;</span><br></pre></td></tr></table></figure>
+
+<p>检查指定内核是否生效</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ grub2-editenv list</span><br></pre></td></tr></table></figure>
+
+<p>重启系统</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl reboot</span><br></pre></td></tr></table></figure>
+
+<p>再次检查当前运行的内核</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ uname -r</span><br></pre></td></tr></table></figure>
+
+<h2><span id="4安装速锐">4.安装速锐</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget -N --no-check-certificate https://github.com/91yun/serverspeeder/raw/master/serverspeeder-v.sh &amp;&amp; bash serverspeeder-v.sh CentOS 7.2 3.10.0-327.el7.x86_64 x64 3.11.20.5 serverspeeder_72327</span><br></pre></td></tr></table></figure>
+
+<p>成功之后查看速锐运行情况(速锐默认开机启动)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ /serverspeeder/bin/serverSpeeder.sh status</span><br></pre></td></tr></table></figure>
+
+<p>也可以执行以下命令查看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service serverSpeeder status</span><br></pre></td></tr></table></figure>
+
+<p>如果想关闭开机自启，则执行下面命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig serverSpeeder off</span><br></pre></td></tr></table></figure>
+
+<h2><span id="5补充">5.补充</span></h2><p>简单说明下 centos 6 与 centos 7 服务开机启动、关闭设置的方法：</p>
+<p><strong>centos 6,使用chkconfig命令即可。centos 7,使用systemctl中的enable、disable 即可。</strong></p>
+<p>我们以apache服务为例:</p>
+<p>centos 6</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ chkconfig --add apache	#添加nginx服务</span><br><span class="line">$ chkconfig apache on	#开机自启nginx服务</span><br><span class="line">$ chkconfig apache off	#关闭开机自启</span><br><span class="line">$ chkconfig --list | grep apache	#查看</span><br></pre></td></tr></table></figure>
+
+<p>centos 7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl enable apache.service	#开机自启apache服务</span><br><span class="line">$ systemctl disable apache.service	#关闭开机自启</span><br></pre></td></tr></table></figure></div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

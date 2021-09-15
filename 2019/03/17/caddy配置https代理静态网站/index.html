@@ -1,0 +1,48 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>caddy配置https代理静态网站</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>caddy配置https代理静态网站</h2><h2><span id="1前言">1.前言</span></h2><p>使用https必须有域名，这里的前提是<strong>已经有域名且域名的A记录已经指向服务器公网ip</strong>。本文使用centos 7环境。</p>
+<h2><span id="2安装caddy">2.安装caddy</span></h2><p>这里参考了网上别人的一键脚本，这是最方便的。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/caddy_install.sh &amp;&amp; chmod +x caddy_install.sh &amp;&amp; bash caddy_install.sh install http.filemanager</span></span><br></pre></td></tr></table></figure>
+
+<p>一路回车就能安装完成。</p>
+<h2><span id="3配置caddy">3.配置caddy</span></h2><p>脚本安装的caddy配置文件放在<code>/usr/local/caddy</code>路径下，这里执行如下命令:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi /usr/<span class="built_in">local</span>/caddy/Caddyfile</span></span><br></pre></td></tr></table></figure>
+
+<p>复制如下内容:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">:80 &#123;</span><br><span class="line">    root /var/www</span><br><span class="line">    gzip &#123;</span><br><span class="line">        ext .html .htm .php</span><br><span class="line">        level 6</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后再执行如下命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi /var/www/index.html</span></span><br></pre></td></tr></table></figure>
+
+<p>复制以下内容并保存</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">  &lt;head&gt;</span><br><span class="line">    &lt;title&gt;Hello from Caddy!&lt;/title&gt;</span><br><span class="line">  &lt;/head&gt;</span><br><span class="line">  &lt;body&gt;</span><br><span class="line">    &lt;h1 style=&quot;font-family: sans-serif&quot;&gt;This page is being served via Caddy&lt;/h1&gt;</span><br><span class="line">  &lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如此一来，执行启动caddy命令<code>service caddy start</code>然后在浏览器输入ip地址即可看到网页输出的内容。</p>
+<p>注意：防火墙要开放80端口。</p>
+<a id="more"></a>
+
+<h2><span id="4配置https">4.配置https</span></h2><p><strong>确保防火墙开放了80和443端口。</strong></p>
+<p>重新编辑caddy配置文件<code>vi /usr/local/caddy/Caddyfile</code>,用如下内容覆盖原先写的配置:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">http://&lt;example.com&gt; &#123;</span><br><span class="line">    redir https://&lt;example.com&gt;&#123;url&#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">https://&lt;example.com&gt; &#123;</span><br><span class="line">    root /var/www/</span><br><span class="line">    gzip</span><br><span class="line"> </span><br><span class="line">    tls &lt;user@example.com&gt; &#123;</span><br><span class="line">        ciphers ECDHE-ECDSA-WITH-CHACHA20-POLY1305 ECDHE-ECDSA-AES256-GCM-SHA384 ECDHE-ECDSA-AES256-CBC-SHA</span><br><span class="line">        curves p384</span><br><span class="line">        key_type p384</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    header / &#123;</span><br><span class="line">        Strict-Transport-Security &quot;max-age=31536000;&quot;</span><br><span class="line">        X-XSS-Protection &quot;1; mode=block&quot;</span><br><span class="line">        X-Content-Type-Options &quot;nosniff&quot;</span><br><span class="line">        X-Frame-Options &quot;DENY&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p> example.com: 替换自己的域名<br> user@example.com：替换自己的邮箱        </p>
+</blockquote>
+<p>保存退出。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> service caddy stop	<span class="comment">#关闭caddy		</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> /etc/init.d/caddy start	<span class="comment">#启动caddy，这里用了命令方式启动</span></span></span><br></pre></td></tr></table></figure>
+
+<p>启动完成之后，等待一段时间证书颁布完成，访问域名则可以看到已经是https了。</p>
+<p>可以去<a href="https://www.ssllabs.com/" target="_blank" rel="noopener">SSL Labes</a>网站检测下https配置评分，差不多能拿到A+评级。</p>
+<h2><span id="5caddy管理命令">5.caddy管理命令</span></h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> service caddy start	<span class="comment">#启动		</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> service caddy stop	<span class="comment">#关闭		</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> service caddy restart	<span class="comment">#重启		</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> service caddy status	<span class="comment">#查看状态</span></span></span><br></pre></td></tr></table></figure>
+
+<p>caddy申请证书路径如下:</p>
+<p>/root/.caddy/acme/acme-v02.api.letsencrypt.org/sites/域名/域名.crt<br>/root/.caddy/acme/acme-v02.api.letsencrypt.org/sites/域名/域名.key</p>
+<p>caddy配置文件路径：/usr/local/caddy/<br>caddy默认开机启动,如想关闭开机启动则执行<code>chkconfig caddy off</code>,想恢复开机启动则<code>chkconfig caddy on</code>。</p>
+<h2><span id="6caddy配置文件管理插件">6.caddy配置文件管理插件</span></h2><p>刚才的安装命令其实已经包含了http.filemanager插件</p>
+<p>只要在caddy的配置文件中增加以下一段配置即可开启文件管理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">filemanager /download /data/file &#123;</span><br><span class="line">        database /usr/local/caddy/filemanager.db</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>配置的说明：</p>
+<blockquote>
+<p>前面的/download是指url访问路径，后面的/data/file是指服务器存放文件根目录，database 是指文件管理的一些数据信息存放路径，一般建议跟caddy配置文件放同一路径方便管理。</p>
+</blockquote>
+<p>如此一来，结合上面https的配置，访问域名+/download路径即可访问文件管理页面，默认用户名密码为admin/admin，配置可以登录以后修改。</p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

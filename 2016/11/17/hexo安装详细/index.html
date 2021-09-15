@@ -1,0 +1,89 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>hexo安装详细教程</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>hexo安装详细教程</h2><h2><span id="1前言">1.前言</span></h2><p>hexo安装需要git环境和node.js环境，这里以centos 7为例，以root用户登录。</p>
+<h2><span id="2环境安装">2.环境安装</span></h2><p>安装git</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> yum install git-core	<span class="comment">#安装git</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git --version	<span class="comment">#查看安装的git版本</span></span></span><br></pre></td></tr></table></figure>
+
+<p>用nvm管理node.js</p>
+<p>curl:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> curl https://raw.github.com/creationix/nvm/v0.33.11/install.sh | sh</span></span><br></pre></td></tr></table></figure>
+
+<p>wget:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> wget -qO- https://raw.github.com/creationix/nvm/v0.33.11/install.sh | sh</span></span><br></pre></td></tr></table></figure>
+
+<p>任选以上任何一种方式安装nvm，安装完成以后重启服务器，执行以下命令安装node.js</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> nvm install stable</span></span><br></pre></td></tr></table></figure>
+
+<p>至此，所依赖的环境安装完成，执行<code>node -v</code>命令可查看当前node.js版本。</p>
+<h2><span id="3hexo安装">3.hexo安装</span></h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install -g hexo-cli</span></span><br></pre></td></tr></table></figure>
+
+<h2><span id="4博客初始化">4.博客初始化</span></h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /usr/<span class="built_in">local</span>	<span class="comment">#进入目录	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir hexo-site	<span class="comment">#创建博客目录	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> hexo-site	<span class="comment">#进入博客目录	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo init <span class="comment">#初始化	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm install	<span class="comment">#安装依赖</span></span></span><br></pre></td></tr></table></figure>
+
+<p>以上操作都完成以后,在/usr/local/hexo-site目录下执行 </p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> hexo g	<span class="comment">#生成静态文件	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> hexo s	<span class="comment">#启动hexo服务,在当前服务器ip的4000端口能打开博客首页，前提是服务器防火墙开放4000端口</span></span></span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+<h2><span id="5博客使用第三方主题">5.博客使用第三方主题</span></h2><p>这里以minos主题为例,<a href="https://github.com/ppoffice/hexo-theme-minos" target="_blank" rel="noopener">github链接</a>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/hexo-site/themes	<span class="comment">#进入博客目录的主题文件夹</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git <span class="built_in">clone</span> https://github.com/ppoffice/hexo-theme-minos.git minos	<span class="comment">#clone主题</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> minos	</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git tag --list	</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git checkout -b tag2.2.1 2.2.1	<span class="comment">#以2.2.1这个tag切出来一个本地分支名叫tag2.2.1,并切换到该分支，当然直接用master分支的代码也可以，这里用最新tag的代码切出分支是稳妥起见。	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> git branch -a	<span class="comment">#查看目前分支情况以及当前在哪个分支	</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> mv _config.yml.example _config.yml	<span class="comment">#把主题的配置文件开起来</span></span></span><br></pre></td></tr></table></figure>
+
+<p>上面就完成了主题的安装，当然主题的配置文件_config.yml有更详细的配置，请参考github上的指导。</p>
+<p>接下来就是使用主题</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /usr/<span class="built_in">local</span>/hexo-site	</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> vi _config.yml	<span class="comment">#修改博客配置文件</span></span></span><br></pre></td></tr></table></figure>
+
+<p>把配置文件中的theme: landscape这一行改为theme: minos,然后在博客目录执行<code>hexo g</code>和<code>hexo s</code>分别编译和启动博客程序即可。</p>
+<p>注意: 这里会有以下提醒</p>
+<blockquote>
+<p>ERROR Package hexo-renderer-sass is not installed.<br>ERROR Please install the missing dependencies in the root directory of your Hexo site.</p>
+</blockquote>
+<p>这是因为博客主题minos需要安装hexo-renderer-sass插件，只要在博客目录(/usr/local/hexo-site）执行以下命令即可安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install --save hexo-renderer-sass</span></span><br></pre></td></tr></table></figure>
+
+<p>之后再按照上面重新编译和启动博客就不会报错了。</p>
+<p><strong>关于minos主题的一些配置及使用方式，以后有机会可以专门写一篇文章介绍。</strong></p>
+<h2><span id="6使用hexo-admin后台管理博客">6.使用hexo-admin后台管理博客</span></h2><p>这是一款插件,地址在<a href="https://github.com/jaredly/hexo-admin" target="_blank" rel="noopener">这里</a>。</p>
+<p>进入到博客的主目录<code>/usr/local/hexo-site</code></p>
+<p>执行以下命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install --save hexo-admin	<span class="comment">#安装插件</span></span></span><br></pre></td></tr></table></figure>
+
+<p>安装完成以后正常启动<code>hexo s</code>即可，可在博客主页路径之后加上/admin即可访问管理后台。</p>
+<p>菜单大概是这个样子，如下图:</p>
+<p><img src="../../../../img/hexo/hexo1.jpg" alt></p>
+<p>这里对图中的菜单做下简单说明:</p>
+<p><strong>Posts</strong>: 文章管理<br><strong>Pages</strong>: 页面管理，主要是一些关于页面之类<br><strong>About</strong>: hexo-admin插件的一些信息<br><strong>Deploy</strong>: 自动发布博客，这个后面会详细介绍<br><strong>Settings</strong>: 插件的一些设置，设置密码登录就可以参考这里</p>
+<p>接下来主要讲一下在线发布和设置用户密码。</p>
+<p><strong>1.在线发布</strong></p>
+<p><img src="../../../../img/hexo/hexo2.jpg" alt></p>
+<p>deploy的输入位置是对应hexo-admin配置里面的deployCommand项，如果配置里面已经配置了该项，则这里不用输入任何文字，直接点击Deploy按钮即可完成在线发布。</p>
+<p>示例:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  deployCommand: &apos;./hexo-deploy&apos;</span><br></pre></td></tr></table></figure>
+
+<p>这样，只要在博客主目录<code>/usr/local/hexo-site</code>下，有名为hexo-deploy的脚本就可以了。</p>
+<p>脚本内容可以参考下面:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo clean &amp;&amp; hexo g</span><br></pre></td></tr></table></figure>
+
+<p>这里只是清除及重新编译生成博文。这里的脚本是可以根据需求自己定义的。但是这里的hexo-deploy<strong>需要有可执行权限</strong>。(chmod +x hexo-deploy)</p>
+<p><strong>2.设置用户名密码</strong></p>
+<p>进入后台管理Settings-&gt;Setup authentification 菜单,如下图:</p>
+<p><img src="../../../../img/hexo/hexo3.jpg" alt><br>填写相关配置，然后把红框部分的内容复制下来配置到博客主目录的_config.yml文件(不是主题目录下的_config.yml)末尾即可。</p>
+<p>结合第1点在线发布，完整的配置应该如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">admin:</span><br><span class="line">  username: xxx</span><br><span class="line">  password_hash: xxx</span><br><span class="line">  secret: xxx</span><br><span class="line">  deployCommand: &apos;./hexo-deploy&apos;</span><br></pre></td></tr></table></figure>
+
+<p>修改完配置，保存重启博客即可，再次登录后台则需要输入用户名密码。</p>
+<h2><span id="7让hexo一直后台运行">7.让hexo一直后台运行</span></h2><p>官方建议是<code>hexo s &amp;</code>命令运行则是后台启动，但是实际体验下来还是会莫名其妙死掉进程。参考了这篇文章<a href="https://blog.csdn.net/Tangcuyuha/article/details/80331169" target="_blank" rel="noopener">链接</a>。</p>
+<p>安装pm2</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm  install -g pm2</span></span><br></pre></td></tr></table></figure>
+
+<p>然后在博客根目录创建一个脚本<strong>hexo_run.js</strong>,内容如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const &#123; exec &#125; = require(&apos;child_process&apos;)</span><br><span class="line">exec(&apos;hexo server&apos;,(error, stdout, stderr) =&gt; &#123;</span><br><span class="line">        if(error)&#123;</span><br><span class="line">                console.log(&apos;exec error: $&#123;error&#125;&apos;)</span><br><span class="line">                return</span><br><span class="line">        &#125;</span><br><span class="line">        console.log(&apos;stdout: $&#123;stdout&#125;&apos;);</span><br><span class="line">        console.log(&apos;stderr: $&#123;stderr&#125;&apos;);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>最后在根目录运行如下命令即可后台启动hexo程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pm2 start hexo_run.js</span><br></pre></td></tr></table></figure>
+
+<p>可通过命令<code>netstat -apn | grep hexo</code>来查看当前hexo进程。</p>
+<h2><span id="8安装live2d插件">8.安装live2d插件</span></h2><p>插件地址<a href="https://github.com/EYHN/hexo-helper-live2d" target="_blank" rel="noopener">github</a></p>
+<p>在博客根目录执行以下命令安装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install --save hexo-helper-live2d@3.x</span><br></pre></td></tr></table></figure>
+
+<p>安装完成以后编辑博客根目录的_config.yml文件，在最后加如下配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">live2d:</span><br><span class="line">  model:</span><br><span class="line">    scale: 1</span><br><span class="line">    hHeadPos: 0.5</span><br><span class="line">    vHeadPos: 0.618</span><br><span class="line">  display:</span><br><span class="line">    superSample: 2</span><br><span class="line">    width: 150</span><br><span class="line">    height: 300</span><br><span class="line">    position: left</span><br><span class="line">    hOffset: 0</span><br><span class="line">    vOffset: -20</span><br><span class="line">  mobile:</span><br><span class="line">    show: true</span><br><span class="line">    scale: 0.5</span><br><span class="line">  react:</span><br><span class="line">    opacityDefault: 0.7</span><br><span class="line">    opacityOnHover: 0.2</span><br></pre></td></tr></table></figure>
+
+<p>重新编译博客即可。</p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>Zookeeper集群配置</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>Zookeeper集群配置</h2><p>zk集群是分布式系统比较基础的，而且其实也不难，主要是细心，这里详细记录一下。</p>
+<h2><span id="1修改zoocfg文件">1.修改zoo.cfg文件</span></h2><p>以3台zookeeper集群为例</p>
+<p>以下操作针对3个zk,每个zk都需要如此操作</p>
+<p>假定zk路径都为: /usr/local/zookeeper-3.4.10</p>
+<p>首先新建一个data目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /usr/local/zookeeper-3.4.10</span><br><span class="line">$ mkdir data</span><br></pre></td></tr></table></figure>
+
+<p>修改zoo.cfg文件，其中</p>
+<blockquote>
+<p>dataDir=/tmp/zookeeper</p>
+</blockquote>
+<p>修改为</p>
+<blockquote>
+<p>dataDir=/usr/local/zookeeper-3.4.10/data</p>
+</blockquote>
+<p>注意: 如果是单台机器部署多个(伪集群)，则clientPort需修改为不同端口</p>
+<p>末尾添加如下配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server.1=192.168.0.1:2888:3888</span><br><span class="line">server.2=192.168.0.2:2888:3888</span><br><span class="line">server.3=192.168.0.3:2888:3888</span><br></pre></td></tr></table></figure>
+
+<p>注意: 这里ip地址根据实际情况配置，也可以配置为host映射。如果是单台机器部署多个(伪集群)，则其中端口不能重复(2888,3888)</p>
+<h2><span id="2创建myid文件">2.创建myid文件</span></h2><p>以下操作针对3个zk,每个zk都需要如此操作</p>
+<p>在刚才配置的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dataDir=/usr/local/zookeeper-3.4.10/data</span><br></pre></td></tr></table></figure>
+
+<p>目录下创建myid文件，内容为各自ip对应的server.X,也就是上述配置的1，2，3</p>
+<table>
+<thead>
+<tr>
+<th>zk地址</th>
+<th>文件</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>192.168.0.1</td>
+<td>myid</td>
+<td>1</td>
+</tr>
+<tr>
+<td>192.168.0.2</td>
+<td>myid</td>
+<td>2</td>
+</tr>
+<tr>
+<td>192.168.0.3</td>
+<td>myid</td>
+<td>3</td>
+</tr>
+</tbody></table>
+<h2><span id="3查看集群启动状态">3.查看集群启动状态</span></h2><p>依次启动每一个zk</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./zkServer.sh start</span><br></pre></td></tr></table></figure>
+
+<p>执行如下命令查看状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./zkServer.sh status</span><br></pre></td></tr></table></figure>
+
+<p>输出如下:</p>
+<blockquote>
+<p>ZooKeeper JMX enabled by default<br>Using config: /usr/local/zookeeper-3.4.10/bin/../conf/zoo.cfg<br>Mode: leader    </p>
+</blockquote>
+<p>或者:</p>
+<blockquote>
+<p>ZooKeeper JMX enabled by default<br>Using config: /usr/local/zookeeper-3.4.10/bin/../conf/zoo.cfg<br>Mode: follower</p>
+</blockquote>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

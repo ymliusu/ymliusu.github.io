@@ -1,0 +1,78 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>vps初始化需做的事情</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>vps初始化需做的事情</h2><h2><span id="1修改root密码">1.修改root密码</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ passwd root</span><br></pre></td></tr></table></figure>
+
+<h2><span id="2关闭selinux">2.关闭SELinux</span></h2><p>1.查看SELinux状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ /usr/sbin/sestatus -v</span><br></pre></td></tr></table></figure>
+
+<p>如果显示<code>SELinux status: enabled</code>则为开启状态，<code>SELinux status: disabled</code>则为关闭状态。</p>
+<p>也可以用如下命令检查:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ getenforce</span><br></pre></td></tr></table></figure>
+
+<p>2.关闭SELinux</p>
+<p>①临时关闭(不用重启)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ setenforce 0 #setenforce 0 设置SELinux 成为permissive模式(关闭)</span><br></pre></td></tr></table></figure>
+
+<p>备注:setenforce 1 设置SELinux 成为enforcing模式(开启)</p>
+<p>②永久关闭需修改配置文件(需重启机器)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi /etc/selinux/config</span><br></pre></td></tr></table></figure>
+
+<p>将<code>SELINUX=enforcing</code>改为<code>SELINUX=disabled</code></p>
+<a id="more"></a>
+
+<h2><span id="3更改ssh默认22端口">3.更改ssh默认22端口</span></h2><p><strong>这里需要修改配置文件，但是在此之前需要先确保你要更改的端口(这里假定要修改为66端口)是被防火墙放行的，针对centos 7这里是firewalld而非iptables。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl status firewalld	#查看防火墙状态，如果是关闭的也就无所谓加不加端口了</span><br><span class="line">$ firewall-cmd --list-ports	#查看当前防火墙开放了哪些端口</span><br><span class="line">$ firewall-cmd --zone=public --add-port=66/tcp --permanent	#开放66端口,tcp</span><br><span class="line">$ firewall-cmd --zone=public --add-port=66/udp --permanent	#开放66端口,udp</span><br><span class="line">$ firewall-cmd --reload	#重启防火墙</span><br><span class="line">$ firewall-cmd --zone=public --list-all	#查看重启之后的防火墙状态,也可以用上面查看开放端口的命令</span><br></pre></td></tr></table></figure>
+
+<p>端口都搞定之后，接下来就是修改ssh配置文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi /etc/ssh/sshd_config</span><br></pre></td></tr></table></figure>
+
+<p>在 #Port 22 这一行下面 加入 Port 66 然后别忘了防火墙开放66端口(上面已经做过了)。</p>
+<p>保存之后重启sshd服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ service sshd restart</span><br></pre></td></tr></table></figure>
+
+<h2><span id="4一键增加删除防火墙端口">4.一键增加删除防火墙端口</span></h2><p>鉴于上面更改ssh默认端口的时候，添加过防火墙端口，但是很繁琐，这里提供一键脚本，出处为<a href="https://github.com/yanzi1225627/greennet/blob/master/shadowsocks/myport" target="_blank" rel="noopener">github</a>,这里是<a href="https://blog.csdn.net/yanzi1225627/article/details/51470962" target="_blank" rel="noopener">原创博文链接</a></p>
+<p>新建文件myport，注意没有后缀。复制以下内容到文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">num=$#</span><br><span class="line">ok=0</span><br><span class="line">if [ $&#123;num&#125; != 2 ]; then</span><br><span class="line">    echo &apos;error:you must input two parmas, first is add or remote, second is port number&apos;</span><br><span class="line">    exit 0</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">case $1 in</span><br><span class="line"></span><br><span class="line">add)</span><br><span class="line">firewall-cmd --zone=public --add-port=$2/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=$2/udp --permanent</span><br><span class="line">ok=1</span><br><span class="line">;;</span><br><span class="line"></span><br><span class="line">remove)</span><br><span class="line">firewall-cmd --zone=public --remove-port=$2/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --remove-port=$2/udp --permanent</span><br><span class="line">ok=1</span><br><span class="line">;;</span><br><span class="line"></span><br><span class="line">*)</span><br><span class="line">echo &apos;first params must be &quot;add&quot; or &quot;remove&quot;&apos; </span><br><span class="line">;;</span><br><span class="line"></span><br><span class="line">esac</span><br><span class="line">if [ $&#123;ok&#125; == 1 ]; then</span><br><span class="line">firewall-cmd --reload</span><br><span class="line">firewall-cmd --zone=public --list-all</span><br><span class="line">fi</span><br><span class="line">exit 0</span><br></pre></td></tr></table></figure>
+
+<p>将脚本增加可执行权限，然后mv到<code>/usr/local/sbin</code>目录即可！</p>
+<p>使用示例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ myport add 80	#开放80端口,包含tcp和udp</span><br><span class="line">$ myport remove 80	#移除开放的80端口,包含tcp和udp</span><br></pre></td></tr></table></figure>
+
+<h2><span id="5测试上传下载速度">5.测试上传下载速度</span></h2><p>这里使用speedtest-cli脚本工具,出处为<a href="https://github.com/sivel/speedtest-cli" target="_blank" rel="noopener">github</a>。</p>
+<p>获取脚本</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ wget -O speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py</span><br><span class="line">$ chmod +x speedtest-cli</span><br></pre></td></tr></table></figure>
+
+<p>也可以用如下命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ curl -Lo speedtest-cli https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py</span><br><span class="line">$ chmod +x speedtest-cli</span><br></pre></td></tr></table></figure>
+
+<p>使用示例</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ ./speedtest-cli	#程序自动找ping最低的节点测试</span><br><span class="line">$ ./speedtest-cli --list | grep China	#列出所有China相关的节点，前面的编号代表这个节点</span><br><span class="line">$ ./speedtest-cli --server=2529	#测试vps到节点2529的网络情况</span><br></pre></td></tr></table></figure>
+
+<p>注意，优先关注upload速度。</p>
+<h2><span id="6测试网络下行和io速度">6.测试网络下行和IO速度</span></h2><p>执行命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ wget -qO- bench.sh | bash</span><br></pre></td></tr></table></figure>
+
+<p>该命令不会保存文件到本地，直接看执行结果就可以了。</p>
+<h2><span id="7查看网络回程路由信息">7.查看网络回程路由信息</span></h2><p>这里用到besttrace软件。</p>
+<blockquote>
+<p>一款由 IPIP.NET 开发的路由追踪检测工具。目前已经涵盖了 Windows、Android、iOS、Mac平台。Best Trace 可对服务器所经过的路由进行可视化检测，并可以准确标注路由所在位置以及 AS 号。支持查询本机 IP、路由监控、批量 Ping 等。一款由 IPIP.NET 开发的路由追踪检测工具。目前已经涵盖了 Windows、Android、iOS、Mac平台。Best Trace 可对服务器所经过的路由进行可视化检测，并可以准确标注路由所在位置以及 AS 号。支持查询本机 IP、路由监控、批量 Ping 等。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://cdn.ipip.net/17mon/besttrace4linux.zip   </span><br><span class="line">$ unzip besttrace4linux.zip   </span><br><span class="line">$ chmod +x besttrace   </span><br><span class="line">$ ./besttrace -q 1 IP               //IP为你所在的地区的网关或你的公网IP</span><br></pre></td></tr></table></figure>
+
+<h2><span id="8一些常用工具安装个人向">8.一些常用工具安装(个人向)</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install vim net-tools zip unzip lrzsz wget bind-utils -y</span><br></pre></td></tr></table></figure>
+
+<p>vim: vi命令增强</p>
+<p>net-tools:网络工具包</p>
+<p>zip: zip压缩</p>
+<p>unzip: zip解压</p>
+<p>lrzsz: 上传下载工具包</p>
+<p>wget: 网络下载</p>
+<p>bind-utils: 域名查询</p>
+<h2><span id="9修改系统最大文件链接数">9.修改系统最大文件链接数</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ulimit -a</span><br></pre></td></tr></table></figure>
+
+<p>主要关注open files这一行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi  /etc/systemd/system.conf</span><br></pre></td></tr></table></figure>
+
+<p>找到<code>#DefaultLimitNOFILE=</code>这一行修改为<code>DefaultLimitNOFILE=65535</code></p>
+<p>保存后再查看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ulimit -a</span><br></pre></td></tr></table></figure>
+
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

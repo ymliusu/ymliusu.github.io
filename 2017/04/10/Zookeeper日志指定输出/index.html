@@ -1,0 +1,24 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>Zookeeper日志指定输出</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>Zookeeper日志指定输出</h2><p>zk的安装启动是比较容易的，但是网上很少有说明zk的日志该如何保存以及设置（有也是很零碎或者不简洁),这里结合网上的教程及自身实践，给出完整方案。</p>
+<h2><span id="1重命名zoo_samplecfg为zoocfg">1.重命名zoo_sample.cfg为zoo.cfg</span></h2><p>假设zk路径为: /usr/local/zookeeper-3.4.10</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cd /usr/local/zookeeper-3.4.10/conf</span><br><span class="line">$ mv zoo_sample.cfg zoo.cfg</span><br></pre></td></tr></table></figure>
+
+<h2><span id="2修改zk的log4jproperties文件">2.修改zk的log4j.properties文件</span></h2><p><code>$ cd /usr/local/zookeeper-3.4.10/conf</code></p>
+<p>修改log4j.properties首行的</p>
+<blockquote>
+<p>zookeeper.root.logger=INFO, CONSOLE</p>
+</blockquote>
+<p>修改为</p>
+<blockquote>
+<p>zookeeper.root.logger=INFO, ROLLINGFILE</p>
+</blockquote>
+<p>这样就可以了，如果想要日志按天保存文件，则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">log4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender</span><br><span class="line">修改为</span><br><span class="line">log4j.appender.ROLLINGFILE=org.apache.log4j.DailyRollingFileAppender</span><br></pre></td></tr></table></figure>
+
+<h2><span id="3修改zkenvsh文件">3.修改zkEnv.sh文件</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd /usr/local/zookeeper-3.4.10/</span><br><span class="line">$ mkdir logs</span><br><span class="line">$ cd bin</span><br></pre></td></tr></table></figure>
+
+<p>首先建立logs目录，用于存放日志<br>修改zkEnv.sh文件</p>
+<blockquote>
+<p>ZOO_LOG_DIR=”/usr/local/zookeeper-3.4.10/logs”<br>ZOO_LOG4J_PROP=”INFO,ROLLINGFILE”</p>
+</blockquote>
+<p>这里的ZOO_LOG4J_PROP必须和上一步的zookeeper.root.logger一致。</p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

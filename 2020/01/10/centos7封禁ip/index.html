@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>centos7封禁ip</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>centos7封禁ip</h2><h2><span id="1前言">1.前言</span></h2><p>centos 7中使用的是firewalld防火墙，一般情况下可以用如下命令来封禁某一个ip或ip段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --add-rich-rule=&quot;rule family=&apos;ipv4&apos; source address=&apos;xx.xx.xxx.x&apos; reject&quot;	#单个ip	</span><br><span class="line">$ firewall-cmd --permanent --add-rich-rule=&quot;rule family=&apos;ipv4&apos; source address=&apos;xx.xx.xxx.0/24&apos; reject&quot;	#ip段</span><br></pre></td></tr></table></figure>
+
+<p>使用上是没什么问题，只不过一旦大量ip需要拉黑，管理上就会很混乱。因此这里介绍firewalld配置ipset来实现。</p>
+<h2><span id="2创建ipset">2.创建ipset</span></h2><p>执行命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=public --new-ipset=blacklist --type=hash:net	#创建一个名为blacklist的库</span><br></pre></td></tr></table></figure>
+
+<p>执行完命令可在<code>/etc/firewalld/ipsets</code>路径下看到生成的blacklist.xml文件。</p>
+<h2><span id="3添加删除要禁止的ip或ip段">3.添加/删除要禁止的ip或ip段</span></h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=public --ipset=blacklist --add-entry=xxx.x.x.xx	#添加ip</span><br><span class="line">$ firewall-cmd --permanent --zone=public --ipset=blacklist --add-entry=xxx.xx.xx.0/24	#添加ip段</span><br><span class="line">$ firewall-cmd --permanent --zone=public --ipset=blacklist --remove-entry=xxx.x.x.xx	#删除ip</span><br><span class="line">$ firewall-cmd --permanent --zone=public --ipset=blacklist --remove-entry=xxx.xx.xx.0/24	#删除ip段</span><br></pre></td></tr></table></figure>
+
+<p>备注: –permanent参数表示永久生效，内容会写入blacklist.xml文件且需要重启防火墙<code>firewall-cmd --reload</code>生效，如果不加该参数，则立即生效，内容不会写入blacklist.xml文件，服务重启则规则失效。</p>
+<h2><span id="4封禁ipset">4.封禁ipset</span></h2><p>前面只是创建了名为blacklist的ipset，而且也往里面增加了内容，最后一步即防火墙封禁该ipset即可，这样的好处是防火墙只是一条规则就封禁了文件里管理的大量ip。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ firewall-cmd --permanent --zone=public --add-rich-rule=&apos;rule source ipset=blacklist drop&apos;	#封禁名为blacklist的ipset</span><br></pre></td></tr></table></figure>
+
+<p>最后，重新载入防火墙即可生效：<code>firewall-cmd --reload</code></p>
+<p>可通过命令查看当前防火墙状态：<code>firewall-cmd --list-all</code></p>
+<p>也可以单独查看当前ipset封禁了哪些ip：<code>ipset list blacklist</code></p>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>

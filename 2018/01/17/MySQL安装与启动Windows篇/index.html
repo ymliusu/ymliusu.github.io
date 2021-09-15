@@ -1,0 +1,36 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.9.0"><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=0.5"><link rel="stylesheet" href="/css/post.css"><link rel="icon" href="/favicon.ico"><title>MySQL安装与启动Windows篇</title><script src="/js/baidu_analytics.js"></script></head><body>　　<div class="inner"><h2>MySQL安装与启动Windows篇</h2><p>有时候我们会要在windows机器上安装mysql数据库，又不想下载安装文件，想通过源码安装，此文专门介绍了如果通过下载mysql.zip包，在windows环境下解压安装的过程。</p>
+<h2><span id="1将下载的压缩包解压到自定义目录">1.将下载的压缩包解压到自定义目录</span></h2><p>官网下载文件,以<strong>mysql-5.6.28-winx64.zip</strong>为例</p>
+<p>解压到一个单独目录: 如 <code>D:\mysql\mysql-5.6.28-winx64</code></p>
+<h2><span id="2添加环境变量">2.添加环境变量</span></h2><p>变量名：MYSQL_HOME<br>变量值：D:\mysql\mysql-5.6.28-winx64</p>
+<p>PATH中新增 %MYSQL_HOME%\bin</p>
+<h2><span id="3将mysql注册为windows系统服务">3.将mysql注册为windows系统服务</span></h2><p>①从控制台进入到MySQL解压目录下的 bin 目录下</p>
+<p>②输入命令：mysqld install MySQL –defaults-file=”D:\mysql\mysql-5.6.28-winx64\my-default.ini”</p>
+<p>备注: 服务移除命令为 mysqld remove</p>
+<h2><span id="4启动mysql服务">4.启动mysql服务</span></h2><p>方法一: 输入命令 net start mysql<br>方法二: 开始-&gt;运行-&gt;输入services.msc  启动mysql服务</p>
+<a id="more"></a>
+
+<h2><span id="5安装以后需要注意的事情">5.安装以后需要注意的事情</span></h2><h3><span id="51修改root密码">5.1.修改root密码</span></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">c:&gt;mysql –uroot</span><br><span class="line">mysql&gt;show databases;</span><br><span class="line">mysql&gt;use mysql;</span><br><span class="line">mysql&gt;UPDATE user SET password=PASSWORD(&quot;123456&quot;) WHERE user=&apos;root&apos;;</span><br><span class="line">mysql&gt;FLUSH PRIVILEGES;</span><br><span class="line">mysql&gt;QUIT</span><br></pre></td></tr></table></figure>
+
+<h3><span id="52修改数据库字符集为utf-8">5.2.修改数据库字符集为utf-8</span></h3><p><code>show variables like &#39;%char%&#39;</code></p>
+<p>修改目录下的<strong>my-default.ini</strong>文件，增加这一段配置：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[client]</span><br><span class="line">default-character-set=utf8</span><br><span class="line"></span><br><span class="line">[mysql]</span><br><span class="line">default-character-set=utf8</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line">character-set-server=utf8</span><br></pre></td></tr></table></figure>
+
+<p>保存，重启mysql。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;net  stop mysql</span><br><span class="line">&gt;net  start mysql</span><br></pre></td></tr></table></figure>
+
+<h3><span id="53让root用户远程能连mysql">5.3.让root用户远程能连mysql</span></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;GRANT ALL PRIVILEGES ON *.* TO &apos;root&apos;@&apos;%&apos; IDENTIFIED BY &apos;admin123&apos; WITH GRANT OPTION;</span><br><span class="line"></span><br><span class="line">&gt;FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+
+<p>(如果要指定某个ip则%换成ip，root为用户名，admin123为访问密码)</p>
+<h3><span id="54创建用户并分配权限">5.4.创建用户并分配权限</span></h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt;CREATE USER dev IDENTIFIED BY &apos;dev123&apos;</span><br><span class="line"></span><br><span class="line">&gt;SHOW GRANTS FOR dev</span><br><span class="line"></span><br><span class="line">&gt;GRANT ALL PRIVILEGES ON test.* TO dev</span><br><span class="line"></span><br><span class="line">&gt;REVOKE ALL PRIVILEGES ON test.* FROM dev</span><br></pre></td></tr></table></figure>
+
+<p>可能会碰到的事情:</p>
+<blockquote>
+<p>为什么使用了Grant all on db.* to user identified by “pass”后，在主机上访问数据库还会出现ERROR 1045 (28000): Access denied for user ‘user’@’localhost’ (using password: YES) 的错误提示？</p>
+</blockquote>
+<blockquote>
+<p>解答方法如下：运行命令 Grant all on db.* to ‘user’@’localhost’ identified by “pass”</p>
+</blockquote>
+<blockquote>
+<p>原因是：当不加@选项时，效果与加@’%’是一样的，’%’从名义上包括任何主机，（%必须加上引号，不然与@放在一起可能不会被辨认出。）不过有些时候（有些版本）’%’不包括localhost，要单独对@’localhost’进行赋值。</p>
+</blockquote>
+</div><script src="/js/jquery.min.js"></script><script src="/js/main.js"></script></body></html>
